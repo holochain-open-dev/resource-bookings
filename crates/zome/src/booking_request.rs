@@ -96,3 +96,9 @@ fn shh_to_link_tag(shh: SignedHeaderHashed) -> ExternResult<CreateLink> {
         _ => Err(WasmError::Guest("This is not a createlink header".into())),
     }
 }
+
+#[hdk_extern]
+pub fn cancel_booking_request(booking_request_header_hash: HeaderHashB64) -> ExternResult<()> {
+    delete_entry(booking_request_header_hash.into())?;
+    Ok(())
+}

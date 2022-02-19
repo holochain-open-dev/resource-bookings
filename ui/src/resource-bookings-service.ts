@@ -38,6 +38,12 @@ export class ResourceBookingsService {
     return this.callZome('create_booking_slot', slot);
   }
 
+  async cancelBookingRequest(
+    request: BookingRequest
+  ): Promise<CreateEntryOutput<BookingSlot>> {
+    return this.callZome('delete_booking_request', request);
+  }
+
   async getBookingSlots(
     resourceHash: EntryHashB64
   ): Promise<Record<EntryHashB64, BookingSlot>> {
