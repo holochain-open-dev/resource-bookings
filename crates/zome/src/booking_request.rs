@@ -63,3 +63,10 @@ pub fn get_booking_requests_details(
     // get everything
     // if an entry is undefined -> it means the request was canceled, filter out
 }
+
+#[hdk_extern]
+pub fn cancel_booking_request(booking_request_hash: HeaderHashB64) -> ExternResult<()> {
+
+    delete_entry(booking_request_hash.into())?;
+    Ok(())
+}

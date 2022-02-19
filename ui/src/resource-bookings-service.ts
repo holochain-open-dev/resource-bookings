@@ -1,6 +1,6 @@
 import { CellClient } from '@holochain-open-dev/cell-client';
 import { EntryHashB64 } from '@holochain-open-dev/core-types';
-import { BookableResource, BookingSlot, CreateEntryOutput } from './types';
+import { BookableResource, BookingSlot, CreateEntryOutput, BookingRequest } from './types';
 
 export class ResourceBookingsService {
   constructor(
@@ -30,6 +30,12 @@ export class ResourceBookingsService {
     slot: BookingSlot
   ): Promise<CreateEntryOutput<BookingSlot>> {
     return this.callZome('create_booking_slot', slot);
+  }
+
+  async cancelBookingRequest(
+    request: BookingRequest
+  ): Promise<CreateEntryOutput<BookingSlot>> {
+    return this.callZome('delete_booking_request', request);
   }
 
   async getBookingSlots(
