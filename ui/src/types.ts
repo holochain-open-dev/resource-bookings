@@ -31,3 +31,16 @@ export interface CreateEntryOutput<T> {
   entryHash: EntryHashB64;
   entry: T;
 }
+
+export type RequestStatus =
+  | {
+      Pending: void;
+    }
+  | {
+      Rejected: void;
+    };
+
+export interface BookingRequestDetails {
+  bookingRequest: BookingRequest;
+  requestStatus: RequestStatus;
+}

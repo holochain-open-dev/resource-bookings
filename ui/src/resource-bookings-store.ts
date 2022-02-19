@@ -12,6 +12,7 @@ import {
   BookableResource,
   Booking,
   BookingRequest,
+  BookingRequestDetails,
   BookingSlot,
   CreateEntryOutput,
   TimeRange,
@@ -23,7 +24,7 @@ import pickBy from 'lodash-es/pickBy';
 export interface ResourceBookingsState {
   resources: Record<EntryHashB64, BookableResource>;
   bookingSlots: Record<EntryHashB64, BookingSlot>;
-  bookingRequests: Record<EntryHashB64, BookingRequest>;
+  bookingRequests: Record<EntryHashB64, BookingRequestDetails>;
   bookings: Record<EntryHashB64, Booking>;
 }
 
@@ -135,16 +136,41 @@ export class ResourceBookingsStore {
     return slot;
   }
 
-  async requestToBookSlot(slotHash: EntryHashB64)  {
-    
-  }
-
   async fetchBookingSlots(resourceHash: EntryHashB64): Promise<void> {
     const slots = await this._service.getBookingSlots(resourceHash);
 
     this._bookingsStore.update(state => {
       state.bookingSlots = {
         ...state.bookingSlots,
+        ...slots,
+      };
+      return state;
+    });
+  }
+
+  async createBookingRequest(slotHash: EntryHashB64[]): Promise<void> {
+    const request = await this._service.createBookingRequest(slotHash);
+
+    this._bookingsStore.update(state => {
+      state.bookingRequests = {
+        ...state.bookingRequests,
+        [request.entryHash]: {
+          bookingRequest: request.entry,
+          requestStatus: {
+            Pending: undefined,
+          },
+        } as BookingRequestDetails,
+      };
+      return state;
+    });
+  }
+
+  async fetchBookingRequests(slotHash: EntryHashB64): Promise<void> {
+    const slots = await this._service.getBookingRequests(slotHash);
+
+    this._bookingsStore.update(state => {
+      state.bookingRequests = {
+        ...state.bookingRequests,
         ...slots,
       };
       return state;

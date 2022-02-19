@@ -98,12 +98,16 @@ export class BookResources extends ScopedElementsMixin(LitElement) {
       corner="TOP_END"
     >
       <div style="padding: 16px;" class="column">
-        <span
-          >Do you want to request to book a slot for resource?</span>
+        <span>Do you want to request to book a slot for resource?</span>
         <mwc-button
           style="margin-top: 8px"
-          label="Create Slot"
-          @click=${() => {}}
+          label="Create Booking Request"
+          @click=${() => {
+            this.store.createBookingRequest([
+              this._selectedSlotHash as EntryHashB64,
+            ]);
+            this._selectedSlotHash = undefined;
+          }}
         ></mwc-button>
       </div>
     </mwc-menu-surface>`;

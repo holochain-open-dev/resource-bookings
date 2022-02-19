@@ -1,9 +1,11 @@
+//use std::collections::BTreeMap;
+
 use std::collections::BTreeMap;
 
 use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
-use crate::utils::CreateEntryOutput;
+use crate::utils::{try_from_element, CreateEntryOutput};
 
 #[hdk_entry(id = "booking_request", visibility = "public")]
 #[derive(Clone)]
@@ -41,7 +43,6 @@ pub fn create_booking_request(
 pub enum RequestStatus {
     Pending,
     Rejected,
-    Booked,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
@@ -52,14 +53,46 @@ pub struct BookingRequestDetails {
 }
 
 #[hdk_extern]
-pub fn get_booking_requests_details(
+pub fn get_booking_requests(
     slot_hash: EntryHashB64,
 ) -> ExternResult<BTreeMap<EntryHashB64, BookingRequestDetails>> {
     // get_links_details(slot_hash)
+    let link_details = get_link_details(slot_hash.clone().into(), Some(LinkTag::new("pending")))?;
 
     // all the links with “pending” LinkTag -> request pending
     // all the deleted links -> request rejected
-    // all the links with “booked” -> request booked
     // get everything
-    // if an entry is undefined -> it means the request was canceled, filter out
+
+    let mut requests: BTreeMap<EntryHashB64, BookingRequestDetails> = BTreeMap::new();
+
+    for (create_link, delete_links) in link_details.into_inner() {
+        let cl = shh_to_link_tag(create_link.clone())?;
+        let maybe_element = get(cl.target_address.clone(), GetOptions::default())?;
+
+        // if an entry is undefined -> it means the request was canceled, filter out
+        if let Some(element) = maybe_element {
+            let request_status = match delete_links.len() > 0 {
+                true => RequestStatus::Rejected,
+                false => RequestStatus::Pending,
+            };
+
+            let booking_request: BookingRequest = try_from_element(element)?;
+            requests.insert(
+                cl.target_address.into(),
+                BookingRequestDetails {
+                    request_status,
+                    booking_request,
+                },
+            );
+        }
+    }
+
+    Ok(requests)
+}
+
+fn shh_to_link_tag(shh: SignedHeaderHashed) -> ExternResult<CreateLink> {
+    match shh.header() {
+        Header::CreateLink(create_link) => Ok(create_link.clone()),
+        _ => Err(WasmError::Guest("This is not a createlink header".into())),
+    }
 }
