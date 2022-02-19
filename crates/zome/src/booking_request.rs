@@ -65,8 +65,7 @@ pub fn get_booking_requests_details(
 }
 
 #[hdk_extern]
-pub fn cancel_booking_request(booking_request_hash: HeaderHashB64) -> ExternResult<()> {
-
-    delete_entry(booking_request_hash.into())?;
+pub fn cancel_booking_request(booking_request_header_hash: HeaderHashB64) -> ExternResult<()> {
+    delete_entry(booking_request_header_hash.into())?;
     Ok(())
 }
