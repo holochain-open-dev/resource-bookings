@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
-use crate::utils;
+use crate::utils::{self, CreateEntryOutput};
 
 pub const ALL_RESOURCES_ANCHOR: &str = "all_resources";
 
@@ -26,16 +26,10 @@ impl BookableResource {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct CreateBookableResourceOutput {
-    entry_hash: EntryHashB64,
-    bookable_resource: BookableResource,
-}
-
+#[hdk_extern]
 pub fn create_bookable_resource(
     resource_name: String,
-) -> ExternResult<CreateBookableResourceOutput> {
+) -> ExternResult<CreateEntryOutput<BookableResource>> {
     let bookable_resource = BookableResource::new(resource_name)?;
 
     create_entry(&bookable_resource.clone())?;
@@ -47,18 +41,36 @@ pub fn create_bookable_resource(
     path.ensure()?;
 
     create_link(path.path_entry_hash()?, bookable_resource_hash.clone(), ())?;
+    create_link(
+        agent_info()?.agent_initial_pubkey.into(),
+        bookable_resource_hash.clone(),
+        (),
+    )?;
 
-    Ok(CreateBookableResourceOutput {
+    Ok(CreateEntryOutput {
         entry_hash: bookable_resource_hash.into(),
-        bookable_resource,
+        entry: bookable_resource,
     })
 }
 
-pub fn fetch_bookable_resources() -> ExternResult<BTreeMap<EntryHashB64, BookableResource>> {
+#[hdk_extern]
+pub fn get_my_resources(_: ()) -> ExternResult<BTreeMap<EntryHashB64, BookableResource>> {
+    get_resources_from_base(EntryHash::from(agent_info()?.agent_initial_pubkey))
+}
+
+#[hdk_extern]
+pub fn get_all_resources(_: ()) -> ExternResult<BTreeMap<EntryHashB64, BookableResource>> {
+    let path = Path::from(ALL_RESOURCES_ANCHOR.clone());
+
+    get_resources_from_base(path.path_entry_hash()?)
+}
+
+pub fn get_resources_from_base(
+    entry_hash: EntryHash,
+) -> ExternResult<BTreeMap<EntryHashB64, BookableResource>> {
     let mut bookable_resources: BTreeMap<EntryHashB64, BookableResource> = BTreeMap::new();
 
-    let path = Path::from(ALL_RESOURCES_ANCHOR.clone());
-    let links = get_links(path.path_entry_hash()?, None)?;
+    let links = get_links(entry_hash, None)?;
 
     for link in links {
         let bookable_resource: BookableResource = utils::try_get_and_convert(link.target.clone())?;

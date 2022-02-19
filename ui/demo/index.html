@@ -29,7 +29,7 @@
         CreateBookableResource,
         ResourceBookingsStore,
         resourceStoreContext,
-        ResourceBookingsTimeline,
+        ManageResources,
       } from '../dist';
 
       import { ContextProvider } from '@holochain-open-dev/context';
@@ -71,7 +71,7 @@
           return html`
             <profile-prompt>
               <create-resource-booking></create-resource-booking>
-              <resource-bookings-timeline style="flex: 1"></resource-bookings-timeline>
+              <manage-resources style="flex: 1"></manage-resources>
             </profile-prompt>
           `;
         }
@@ -79,7 +79,7 @@
         static get scopedElements() {
           return {
             'profile-prompt': ProfilePrompt,
-            'resource-bookings-timeline': ResourceBookingsTimeline,
+            'manage-resources': ManageResources,
             'create-resource-booking': CreateBookableResource,
           };
         }

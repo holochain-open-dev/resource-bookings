@@ -1,3 +1,4 @@
+use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
 pub fn try_get_and_convert<T: TryFrom<SerializedBytes>>(entry_hash: EntryHash) -> ExternResult<T> {
@@ -26,4 +27,11 @@ pub fn try_from_entry<T: TryFrom<SerializedBytes>>(entry: Entry) -> ExternResult
 
 pub(crate) fn err(reason: &str) -> WasmError {
     WasmError::Guest(String::from(reason))
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateEntryOutput<E> {
+    pub entry_hash: EntryHashB64,
+    pub entry: E,
 }

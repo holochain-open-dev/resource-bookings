@@ -1,4 +1,4 @@
-use crate::entries::booking_slot::BookingSlot;
+use crate::booking_slot::BookingSlot;
 use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 

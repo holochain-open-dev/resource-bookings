@@ -27,7 +27,7 @@ export interface Booking {
   resourceUser: AgentPubKeyB64;
 }
 
-export interface CreateBookableResourceOutput {
+export interface CreateEntryOutput<T> {
   entryHash: EntryHashB64;
-  bookableResource: BookableResource;
+  entry: T;
 }

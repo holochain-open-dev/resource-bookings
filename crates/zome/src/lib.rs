@@ -4,13 +4,15 @@ use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
 mod bookable_resource;
-mod bookable_request;
-mod bookable_slot;
+mod booking;
+mod booking_request;
+mod booking_slot;
 mod utils;
 
 use bookable_resource::*;
-use bookable_slot::*;
-use bookable_request::*;
+use booking::*;
+use booking_request::*;
+use booking_slot::*;
 
 entry_defs![
     PathEntry::entry_def(),
@@ -20,23 +22,6 @@ entry_defs![
     BookingRequest::entry_def()
 ];
 
-/// Creates the bookable_resource for the agent executing this call.
-#[hdk_extern]
-pub fn create_bookable_resource(resource_name: String) -> ExternResult<CreateBookableResourceOutput> {
-    handlers::create_bookable_resource(resource_name)
-}
-
-#[hdk_extern]
-pub fn get_all_resources(_: ()) -> ExternResult<BTreeMap<EntryHashB64, BookableResource>> {
-    handlers::fetch_bookable_resources()
-}
-
-#[hdk_extern]
-pub fn create_bookable_slot(
-    _input: CreateBookableSlotInput,
-) -> ExternResult<BTreeMap<EntryHashB64, BookingSlot>> {
-    todo!()
-}
 
 #[hdk_extern]
 pub fn get_booking_requests(

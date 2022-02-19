@@ -44,7 +44,7 @@ export class CreateBookableResource extends ScopedElementsMixin(LitElement) {
       new CustomEvent('resource-booking-created', {
         detail: {
           entryHash: output.entryHash,
-          bookableResource: output.bookableResource,
+          bookableResource: output.entry,
         },
         bubbles: true,
         composed: true,

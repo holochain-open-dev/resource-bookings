@@ -13,10 +13,12 @@ import {
   Booking,
   BookingRequest,
   BookingSlot,
-  CreateBookableResourceOutput,
+  CreateEntryOutput,
+  TimeRange,
 } from './types';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
 import { defaultConfig, ResourceConfig } from './config';
+import pickBy from 'lodash-es/pickBy';
 
 export interface ResourceBookingsState {
   resources: Record<EntryHashB64, BookableResource>;
@@ -40,10 +42,16 @@ export class ResourceBookingsStore {
 
   /** Readable stores */
 
-  // Store containing all the resource that have been fetched
-  // The key is the agentPubKey of the agent
+  public myResources: Readable<Record<EntryHashB64, BookableResource>> =
+    derived(this._bookingsStore, i =>
+      pickBy(i.resources, resource => resource.author === this.myAgentPubKey)
+    );
   public allResources: Readable<Record<EntryHashB64, BookableResource>> =
     derived(this._bookingsStore, i => i.resources);
+  public allBookingSlots: Readable<Record<EntryHashB64, BookingSlot>> = derived(
+    this._bookingsStore,
+    i => i.bookingSlots
+  );
 
   config: ResourceConfig;
 
@@ -79,18 +87,67 @@ export class ResourceBookingsStore {
       return state;
     });
   }
+  async fetchMyResources(): Promise<void> {
+    const allResources = await this._service.getMyResources();
 
-  async createBookableResource(name: string): Promise<CreateBookableResourceOutput> {
+    this._bookingsStore.update(state => {
+      state.resources = {
+        ...state.resources,
+        ...allResources,
+      };
+      return state;
+    });
+  }
+
+  async createBookableResource(
+    name: string
+  ): Promise<CreateEntryOutput<BookableResource>> {
     const resource = await this._service.createBookableResource(name);
 
     this._bookingsStore.update(state => {
       state.resources = {
         ...state.resources,
-        [resource.entryHash]: resource.bookableResource,
+        [resource.entryHash]: resource.entry,
       };
       return state;
     });
 
     return resource;
+  }
+
+  async createBookingSlot(
+    resourceHash: EntryHashB64,
+    timeRange: TimeRange
+  ): Promise<CreateEntryOutput<BookingSlot>> {
+    const slot = await this._service.createBookingSlot({
+      resourceHash,
+      timeRange,
+    });
+
+    this._bookingsStore.update(state => {
+      state.bookingSlots = {
+        ...state.bookingSlots,
+        [slot.entryHash]: slot.entry,
+      };
+      return state;
+    });
+
+    return slot;
+  }
+
+  async requestToBookSlot(slotHash: EntryHashB64)  {
+    
+  }
+
+  async fetchBookingSlots(resourceHash: EntryHashB64): Promise<void> {
+    const slots = await this._service.getBookingSlots(resourceHash);
+
+    this._bookingsStore.update(state => {
+      state.bookingSlots = {
+        ...state.bookingSlots,
+        ...slots,
+      };
+      return state;
+    });
   }
 }
